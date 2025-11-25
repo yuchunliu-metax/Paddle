@@ -284,9 +284,6 @@ def _select_sdp(head_dim: int) -> str:
     if "iluvatar_gpu" in place:
         return "flash_attn"
 
-    if "metax_gpu" in place:
-        return "flash_attn"
-
     enabled_backends = _get_enabled_backends()
     if not enabled_backends:
         raise AssertionError(
@@ -296,7 +293,12 @@ def _select_sdp(head_dim: int) -> str:
     enable_math = SDPBackend.MATH in enabled_backends
     enable_flash = SDPBackend.FLASH_ATTENTION in enabled_backends
     enable_mem_efficient = SDPBackend.EFFICIENT_ATTENTION in enabled_backends
-
+    if "metax_gpu" in place:
+        if enable_math is True:
+            return "math"
+        if enable_flash is True:
+            return "flash_attn"
+        return "math"
     if enable_math is True:
         if enable_flash is False and enable_mem_efficient is False:
             return "math"
